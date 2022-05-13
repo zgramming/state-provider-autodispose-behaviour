@@ -29,14 +29,16 @@ class FormParameterState extends Equatable {
   }
 }
 
-final formParameterState = StateProvider.autoDispose(
-  (ref) {
-    ref.onDispose(() {
-      log("Trigger Dispose [formParameterState]");
-    });
-    return const FormParameterState();
-  },
-);
+final formParameterState = StateProvider.autoDispose<FormParameterState>((ref) {
+  final now = DateTime.now();
+  log("I am being recomputed! $now", name: "Your Provider", time: now);
+
+  ref.onDispose(() {
+    final now = DateTime.now();
+    log("Triggered Dispose! $now", name: "Your disposed Provider", time: now);
+  });
+  return const FormParameterState();
+});
 
 void main() {
   runApp(
@@ -55,15 +57,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: const WelcomePage(),
@@ -91,6 +84,7 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(formParameterState, (_, __) {});
     return Scaffold(
       appBar: AppBar(
         title: const Text("Form"),
@@ -113,11 +107,8 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                           hintText: "Name",
                         ),
                         onChanged: (val) {
-                          // ref
-                          //     .read(formParameterState.notifier)
-                          //     .update((state) => state.copyWith(name: val));
                           ref
-                              .watch(formParameterState.notifier)
+                              .read(formParameterState.notifier)
                               .update((state) => state.copyWith(name: val));
                         },
                       ),
@@ -129,11 +120,8 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                           hintText: "Email",
                         ),
                         onChanged: (val) {
-                          // ref
-                          //     .read(formParameterState.notifier)
-                          //     .update((state) => state.copyWith(email: val));
                           ref
-                              .watch(formParameterState.notifier)
+                              .read(formParameterState.notifier)
                               .update((state) => state.copyWith(email: val));
                         },
                       ),
@@ -146,15 +134,13 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
           ),
           ElevatedButton(
             onPressed: () {
-              // final formRead = ref.read(formParameterState);
-              // log("[Form Parameter Read] Name : ${formRead.name}");
-              // log("[Form Parameter Read] Name : ${formRead.email}");
+              /// Or `ref.read`, doesn't make much the difference
+              final result = ref.watch(formParameterState);
 
-              final formWatch = ref.watch(formParameterState.notifier).state;
-              log("[Form Parameter Watch] Name : ${formWatch.name}");
-              log("[Form Parameter Watch] Name : ${formWatch.email}");
+              log("Name : ${result.name}", name: "Form");
+              log("Email : ${result.email}", name: "Form");
             },
-            child: const Text("sss"),
+            child: const Text("Click me"),
           )
         ],
       ),
